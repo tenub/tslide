@@ -1,0 +1,144 @@
+* {
+	margin: 0;
+	padding: 0;
+}
+html, body {
+	min-height: 100%;
+}
+body {
+	background: #ccc;
+	color: #000;
+	font: 1em 'Oxygen', sans-serif;
+}
+
+.clear {
+	clear: both;
+}
+.container {
+	position: relative;
+}
+.left {
+	float: left;
+}
+.right {
+	float: right;
+}
+
+body > .container {
+	margin: 0 auto;
+	margin-top: 10px;
+}
+#title {
+	font-size: 3em;
+	font-weight: bold;
+	text-align: center;
+	-webkit-text-fill-color: #000;
+	-webkit-text-stroke-width: 1px;
+	-webkit-text-stroke-color: #fff;
+	text-shadow: 0.1em 0.1em 0.25em rgba(0,0,0,0.4);
+}
+#nav-container-left {
+	position: absolute;
+	background: #fff;
+	width: 32px;
+	height: 32px;
+	left: -21px;
+	top: 50%;
+	margin-top: -16px;
+	padding: 5px;
+	border-radius: 42px;
+	z-index: 0;
+}
+#nav-container-right {
+	position: absolute;
+	background: #fff;
+	width: 32px;
+	height: 32px;
+	right: -21px;
+	top: 50%;
+	margin-top: -16px;
+	padding: 5px;
+	border-radius: 42px;
+	z-index: 0;
+}
+#nav-left {
+	position: absolute;
+	background: url('../img/ico-arrows.png') no-repeat 0 100%;
+	width: 16px;
+	height: 32px;
+	z-index: 1;
+}
+#nav-left:hover {
+	background-position: 0 0;
+}
+#nav-right {
+	position: absolute;
+	background: url('../img/ico-arrows.png') no-repeat 100% 100%;
+	width: 16px;
+	height: 32px;
+	right: 5px;
+	z-index: 1;
+}
+#nav-right:hover {
+	background-position: 100% 0;
+}
+#nav-left:hover, #nav-right:hover {
+	cursor: pointer;
+}
+#slider {
+	position: relative;
+	background: #fff;
+	margin: 0 auto;
+	margin-top: 1em;
+	padding: 10px;
+	box-shadow: 1em 1em 2em rgba(0,0,0,0.2);
+	border-radius: 10px;
+}
+#img-container {
+	position: absolute;
+	z-index: 2;
+	margin: 0 auto;
+	overflow: hidden;
+	white-space: nowrap;
+}
+#img-container img {
+	display: inline-block;
+	position: relative;
+}
+#legend {
+	position: absolute;
+	z-index: 1;
+	left: 50%;
+	margin-left: -6em;
+	bottom: -0.75em;
+	width: 100%;
+}
+.img-number {
+	background: #7f7f7f;
+	border: 0.5em solid #fff;
+	color: rgba(0,0,0,0.5);
+	border-radius: 1.5em;
+	float: left;
+	width: 0.5em;
+	height: 0.5em;
+	line-height: 0.1em;
+	margin: 0 0.25em;
+	text-align: center;
+	font-weight: bold;
+	cursor: pointer;
+}
+.img-number:hover {
+	background: #000;
+}
+#legend > .active {
+	background: #000;
+}
+#content {
+	margin: 0 10px;
+	margin-top: 2em;
+	font-size: 1.1em;
+	line-height: 1.5em;
+	font-weight: normal;
+}
+
+/* color definitions */
