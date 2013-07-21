@@ -14,7 +14,7 @@
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
 <script src="assets/js/bootstrap.min.js"></script>
 <script src="assets/js/easing.min.js"></script>
-<script src="assets/js/tslide.min.js"></script>
+<script src="assets/js/tslide.js"></script>
 <script type="text/javascript">
 
 	// Create array of slider images from directory
@@ -24,6 +24,8 @@
 
 			// set image directory to load images from here
 			$imgdir = "images/";
+
+			echo "var slider_dir = '" . $imgdir . "';";
 
 			if ($dir = opendir($imgdir)) {
 				echo "var slider_images = [";
@@ -39,29 +41,30 @@
 
 		?>
 
-		$(window).load(function() {
-
-			$("#slider").tslide({
-				dir: "images/",
-				images: slider_images,
-				legend: "on",
-				maxwidth: 800,
-	            easing: "easeOutExpo",
-	            aduration: 500,
-	            pduration: 3000,
-	            autoplay: "on"
-			});
-
-		});
-
 		// Preload slider images
 		$.fn.preload = function() {
 		    this.each(function(){
-		        $('<img/>')[0].src = "images/"+this;
+		        $('<img/>')[0].src = slider_dir+this;
 		    });
 		}
 
 		$(slider_images).preload();
+
+		$(window).load(function() {
+
+			$("#slider").tslide({
+				dir: slider_dir,
+				images: slider_images,
+				pagination: "on",
+				autoplay: "on",
+				maxwidth: 800,
+	            easing: "easeOutExpo",
+	            movetime: 500,
+	            pausetime: 3000
+	            
+			});
+
+		});
 		
 	})(window, document);
 
