@@ -17,7 +17,7 @@
 <script src="assets/js/tslide.js"></script>
 <script type="text/javascript">
 
-	// Create array of slider images from directory
+	// create array of slider images from directory
 	(function (window, document) {
 
 		<?php
@@ -41,7 +41,7 @@
 
 		?>
 
-		// Preload slider images
+		// preload slider images
 		$.fn.preload = function() {
 		    this.each(function(){
 		        $('<img/>')[0].src = slider_dir+this;
@@ -57,11 +57,9 @@
 				images: slider_images,
 				pagination: "on",
 				autoplay: "on",
-				maxwidth: 800,
 	            easing: "easeOutExpo",
 	            movetime: 500,
-	            pausetime: 3000
-	            
+	            pausetime: 5000
 			});
 
 		});
@@ -73,7 +71,9 @@
 <body>
 	<div class="container">
 		<div id="title">tslide</div>
-		<div id="slider"></div>
+		<div class="sliderstyle">
+			<div id="slider"></div>
+		</div>
 		<div id="content">tslide is a simple, lightweight image slider created using HTML/CSS3, JavaScript/jQuery, &amp; PHP that loops through an array of images seamlessly. Simply place your images in the images directory and tslide will generate a proper image slider so you can show your friends how cool you are!</div>
 	</div>
 </body>

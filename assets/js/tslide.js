@@ -2,18 +2,20 @@
 
 ;(function ($, window, document, undefined) {
 
-    // Setup defaults
+    // setup defaults
     var d = document,
         pluginName = "tslide",
         defaults = {
+            dir: "images/",
+            images: [],
             pagination: "on",
-            maxwidth: 800,
-            easing: "swing",
-            movetime: 400,
-            pausetime: 2000,
-            autoplay: "on"
+            autoplay: "on",
+            easing: "linear",
+            movetime: 500,
+            pausetime: 5000
         };
 
+    // instantiate plugin
     function Plugin( element, options ) {
         this.element = element;
         this.options = $.extend( {}, defaults, options );
@@ -27,19 +29,36 @@
 
         init: function() {
 
+            // cache plugin element in a variable
             var base = this;
 
-            // before instantiating anything validate user options
+            // clear any previously generated html within slider container
+            $(base.element).html();
+
+            // check to make sure there are actual images to load
+            if ( !base.options.images.length  || !base.options.dir.length ) {
+                $(base.element).html("No images loaded! Check image directory name and/or contents.");
+                return;
+            }
+
+            // validate user options before proceeding
             base.validate(base.options);
 
             // create image container and append images via array generated from images directory
             var html = "<div id='img-container'/>";
             $(this.element).append(this.generateImages(this.options.images)).find("img").wrapAll(html);
 
+            // set initially active index first image
+            $("#img-container").children().eq(0).addClass("active");
+
             // create and append pagination to slider container if the setting is enabled
             if ( this.options.pagination === "on" ) {
+
+                // store pagination container in our html variable to wrap around image index dots
                 html = "<div id='pagination'/>";
-                $(this.element).append(this.generatePagination(this.options.images)).find(".img-number").click(function(){
+
+                // generate image index dots and provide click functionality 
+                $(this.element).append(this.generatePagination(this.options.images)).find(".page-index").click(function(){
 
                     // store index of currently active image
                     base.active = $("#img-container").children(".active").index();
@@ -47,7 +66,7 @@
                     // only animate if the new index is different from the current
                     if ( base.active !== $(this).index() ) {
 
-                        // if autoplay is enabled stop autoplay and wait until animation is complete before starting again
+                        // if autoplay is enabled stop autoplay and wait until animation is complete from clicking an image index before starting again
                         if ( base.options.autoplay === "on" ) {
                             base.play(0);
                         }
@@ -55,14 +74,14 @@
                         // call animation effect
                         base.move(base.active, $(this).index());
 
-                        // add active class to selected index and remove any previous active classes from other indices
+                        // add active class to selected image index and remove any previous active classes from other indices
                         base.updateIndex("#pagination", $(this).index());
                         base.updateIndex("#img-container", $(this).index());
 
-                        // set index position after animation to clicked element occurs
+                        // set image index position after animation to clicked element occurs
                         base.active = $("#img-container").children(".active").index();
 
-                        // if autoplay is enabled restart autoplay
+                        // if autoplay is enabled restart autoplay after click animation and image index updates have concluded
                         if ( base.options.autoplay === "on" ) {
                             base.play(1);
                         }
@@ -71,24 +90,38 @@
 
                 }).wrapAll(html);
 
-                // set initially active index in pagination and image
+                // set initially active index in pagination
                 $("#pagination").children().eq(0).addClass("active");
-                $("#img-container").children().eq(0).addClass("active");
 
             }
 
-            // resize slider elements/containers
-            this.setSize("#img-container > img:first-child","#img-container");
-            this.setSize("#img-container","#slider");
+            // set slider container to height of absolutely positioned image container
+            base.resize("#img-container", "#slider");
 
-            // center pagination module horizontally via negative margin
+            // center dynamically generated pagination module horizontally via negative margin
             $("#pagination").css({
                 "margin-left" : "-" + $("#pagination").children().length + "em"
             });
 
+            // show pagination module when mouse enters image container, otherwise hide it
+            $("#slider").on({
+                mouseenter: function() {
+                    $("#pagination").slideDown(200);
+                },
+                mouseleave: function() {
+                    $("#pagination").fadeOut(400);
+                }
+            });
+
+            // play slider if autoplay is enabled in user options
             if ( this.options.autoplay === "on" ) {
                 base.play(1);
             }
+
+            // resize slider element and image container
+            $(window).resize(function() {
+                base.resize("#img-container", "#slider");
+            });
 
             return this;
 
@@ -108,43 +141,40 @@
             if ( this.options.pagination === "on" ) {
                 var nodeBuffer = [];
                 for ( var i=0; i<imgsrc.length; i++ ) {
-                    nodeBuffer.push($("<div class='img-number'/>"));
+                    nodeBuffer.push($("<div class='page-index'/>"));
                 }
                 return nodeBuffer;
             }
         },
 
-        // resize tslide elements based off maxwidth setting
-        setSize: function(el1, el2) {
+        // set height of second element to that of first
+        resize: function(el1, el2) {
             var e1 = $(el1);
             var e2 = $(el2);
-            var imgw = e1.width();
-            var imgh = e1.height();
-            var imgr = imgw / imgh;
-            var p = e1.innerWidth() - imgw;
-            if ( imgw > this.options.maxwidth ) {
-                e2.width(this.options.maxwidth + p);
-                e2.height(e2.width() / imgr + p);
-            }
-            else {
-                e2.width(imgw + p);
-                e2.height(imgh + p);
-            }
+            //var e1w = e1.width();
+            var e1h = e1.height();
+            //var r = e1w / e1h;
+            //var p = e1.innerWidth() - e1w;
+            e2.height(e1h);
         },
 
         // function to validate user settings
         validate: function (object) {
             if ( object.pagination !== "on" && object.pagination !== "off" ) {
+                console.log("pagination of '" + object.pagination + "' is neither on nor off. Defaulting to on.");
                 object.pagination = "on";
-                console.log("'pagination was neither 'on' nor 'off'. Defaulting to 'on'.");
             }
-            if ( isNaN(parseInt(object.maxwidth, 10)) || parseInt(object.maxwidth, 10) < 16 || parseInt(object.maxwidth, 10) > 1920 ) {
-                object.maxwidth = 800;
-                console.log("'maxwidth' was not between 16 and 1920 pixels. Defaulting to 800.");
+            if ( object.autoplay !== "on" && object.autoplay !== "off" ) {
+                console.log("autoplay of '" + object.autoplay + "' is neither on nor off. Defaulting to on.");
+                object.autoplay = "on";
             }
             if ( isNaN(parseInt(object.movetime, 10)) || parseInt(object.movetime, 10) < 1 || parseInt(object.movetime, 10) > 10000 ) {
-                object.movetime = 400;
-                console.log("'movetime' was not between 1 and 10000 ms. Defaulting to 400.");
+                console.log("movetime of '" + object.movetime + "' is not between 1 and 10000 ms. Defaulting to 500.");
+                object.movetime = 500;
+            }
+            if ( isNaN(parseInt(object.pausetime, 10)) || parseInt(object.pausetime, 100) < 1 || parseInt(object.pausetime, 10) > 20000 ) {
+                console.log("pausetime of '" + object.pausetime + "' is not between 0.1 and 20 s. Defaulting to 5000.");
+                object.pausetime = 5000;
             }
             var valid;
             for ( var key in $.easing ) {
@@ -155,15 +185,17 @@
                 }
             }
             if ( !valid ) {
+                console.log("easing of '" + object.easing + "' is not a valid method. Defaulting to linear.");
                 object.easing = "linear";
-                console.log("'easing' was not a valid method. Defaulting to 'linear'.");
             }
         },
 
+        // update element to active state and reset all other elements
         updateIndex: function(el, index) {
             $(el).children().eq(index).addClass("active").siblings().removeClass("active");
         },
 
+        // autoplay functionality
         play: function(flag) {
             var base = this;
             if ( flag ) {
@@ -205,9 +237,3 @@
     };
 
 })( jQuery, window, document );
-
-/*
-        // validate settings
-        _validate(settings);
-
-*/
