@@ -49,10 +49,18 @@
             $(this.element).append(this.generateImages(this.options.images)).find("img").wrapAll(html);
 
             // set initially active index first image
-            $("#img-container").children().eq(0).addClass("active");
+            var activeImage = $("#img-container").children().eq(0);
+            activeImage.addClass("active");
+
+            // caption funcionality if any are specified in user options
+            if ( base.options.captions ) {
+                html = "<div class='caption'/>";
+                $(this.element).append(html);
+                base.updateCaption();
+            }
 
             // create and append pagination to slider container if the setting is enabled
-            if ( this.options.pagination === "on" ) {
+            if ( base.options.pagination === "on" ) {
 
                 // store pagination container in our html variable to wrap around image index dots
                 html = "<div id='pagination'/>";
@@ -81,6 +89,11 @@
                         // set image index position after animation to clicked element occurs
                         base.active = $("#img-container").children(".active").index();
 
+                        // update caption if enabled
+                        if ( base.options.captions ) {
+                            base.updateCaption();
+                        }
+
                         // if autoplay is enabled restart autoplay after click animation and image index updates have concluded
                         if ( base.options.autoplay === "on" ) {
                             base.play(1);
@@ -96,7 +109,7 @@
             }
 
             // set slider container to height of absolutely positioned image container
-            base.resize("#img-container", "#slider");
+            base.setHeight("#img-container", "#slider");
 
             // center dynamically generated pagination module horizontally via negative margin
             $("#pagination").css({
@@ -120,7 +133,7 @@
 
             // resize slider element and image container
             $(window).resize(function() {
-                base.resize("#img-container", "#slider");
+                base.setHeight("#img-container", "#slider");
             });
 
             return this;
@@ -148,7 +161,7 @@
         },
 
         // set height of second element to that of first
-        resize: function(el1, el2) {
+        setHeight: function(el1, el2) {
             var e1 = $(el1);
             var e2 = $(el2);
             //var e1w = e1.width();
@@ -212,6 +225,9 @@
                         base.move(base.active, base.active+1);
                         base.active += 1;
                     }
+                    if ( base.options.captions ) {
+                        base.updateCaption();
+                    }
                 }, base.options.pausetime);
             }
             else {
@@ -224,8 +240,19 @@
             $("#img-container > img").animate({
                 "right": "+=" + 100 * (dest-cur) + "%"
             }, this.options.movetime, this.options.easing);
-        }
+        },
 
+        // change caption out depending on currently active image index or hide if none exists for current index
+        updateCaption: function() {
+            var ind = $("#img-container").children(".active").index();
+            if ( this.options.captions[ind+1] ) {
+                $(".caption").html( "<p>" + this.options.captions[ind+1] + "</p>" );
+                $(".caption").fadeIn(400);
+            }
+            else {
+                $(".caption").fadeOut(400);
+            }
+        }
     };
 
     $.fn.tslide = function ( options ) {

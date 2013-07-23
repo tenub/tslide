@@ -59,7 +59,11 @@
 				autoplay: "on",
 	            easing: "easeOutExpo",
 	            movetime: 500,
-	            pausetime: 5000
+	            pausetime: 5000,
+	            captions: {
+	            	1: "Test caption number one.",
+	            	3: "Third test caption."
+	            }
 			});
 
 		});
