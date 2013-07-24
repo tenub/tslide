@@ -133,7 +133,8 @@ body > .container {
 	position: absolute;
 	z-index: 4;
 	left: 50%;
-	bottom: -1.5em;
+	bottom: -2.5em;
+	padding-bottom: 1em;
 }
 .page-index {
 	background: #7f7f7f;
