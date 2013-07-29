@@ -6,7 +6,7 @@
     var d = document,
         pluginName = "tslide",
         defaults = {
-            dir: "images/",
+            dir: "images",
             images: [],
             pagination: "on",
             autoplay: "on",
@@ -14,6 +14,13 @@
             movetime: 500,
             pausetime: 5000
         };
+
+    // add preload functionality to jquery
+    $.fn.preload = function() {
+        this.each(function(){
+            $('<img/>')[0].src = this;
+        });
+    };
 
     // instantiate plugin
     function Plugin( element, options ) {
@@ -35,116 +42,135 @@
             // clear any previously generated html within slider container
             $(base.element).html();
 
-            // check to make sure there are actual images to load
-            if ( !base.options.images.length  || !base.options.dir.length ) {
-                $(base.element).html("No images loaded! Check image directory name and/or contents.");
-                return;
-            }
+            $.post("get.php", { dir: base.options.dir }, function(data) {
 
-            // validate user options before proceeding
-            base.validate(base.options);
+                base.options.images = data;
 
-            // create image container and append images via array generated from images directory
-            var html = "<div id='img-container'/>";
-            $(this.element).append(this.generateImages(this.options.images)).find("img").wrapAll(html);
+                // check to make sure there are actual images to load
+                if ( !base.options.images.length  || !base.options.dir.length ) {
+                    $(base.element).html("No images loaded! Check image directory name and/or contents.");
+                    return;
+                }
 
-            // set initially active index first image
-            var activeImage = $("#img-container").children().eq(0);
-            activeImage.addClass("active");
+                // validate user options before proceeding
+                base.validate(base.options);
 
-            // caption funcionality if any are specified in user options
-            if ( base.options.captions ) {
-                html = "<div class='caption'/>";
-                $(this.element).append(html);
-                base.updateCaption();
-            }
+                // create image container and append images via array generated from images directory
+                var html = "<div id='img-container'/>";
+                $(base.element).append(base.generateImages(base.options.images)).find("img").wrapAll(html);
+                //$(base.element).append(html).find("#img-container").append(data);
 
-            // create and append pagination to slider container if the setting is enabled
-            if ( base.options.pagination === "on" ) {
+                // set initially active index first image
+                var activeImage = $("#img-container").children().eq(0);
+                activeImage.addClass("active");
 
-                // store pagination container in our html variable to wrap around image index dots
-                html = "<div id='pagination'/>";
+                // caption funcionality if any are specified in user options
+                if ( base.options.captions ) {
+                    html = "<div class='caption'/>";
+                    $(base.element).append(html);
+                    base.updateCaption();
+                }
 
-                // generate image index dots and provide click functionality 
-                $(this.element).append(this.generatePagination(this.options.images)).find(".page-index").click(function(){
+                // create and append pagination to slider container if the setting is enabled
+                if ( base.options.pagination === "on" ) {
 
-                    // store index of currently active image
-                    base.active = $("#img-container").children(".active").index();
+                    // store pagination container in our html variable to wrap around image index dots
+                    html = "<div id='pagination'/>";
 
-                    // only animate if the new index is different from the current
-                    if ( base.active !== $(this).index() ) {
+                    // generate image index dots and provide click functionality 
+                    $(base.element).append(base.generatePagination(base.options.images)).find(".page-index").click(function() {
 
-                        // if autoplay is enabled stop autoplay and wait until animation is complete from clicking an image index before starting again
-                        if ( base.options.autoplay === "on" ) {
-                            base.play(0);
-                        }
-
-                        // call animation effect
-                        base.move(base.active, $(this).index());
-
-                        // add active class to selected image index and remove any previous active classes from other indices
-                        base.updateIndex("#pagination", $(this).index());
-                        base.updateIndex("#img-container", $(this).index());
-
-                        // set image index position after animation to clicked element occurs
+                        // store index of currently active image
                         base.active = $("#img-container").children(".active").index();
 
-                        // update caption if enabled
-                        if ( base.options.captions ) {
-                            base.updateCaption();
+
+                        // only animate if the new index is different from the current
+                        if ( base.active !== $(this).index() ) {
+
+                            // if autoplay is enabled stop autoplay and wait until animation is complete from clicking an image index before starting again
+                            if ( base.options.autoplay === "on" ) {
+                                base.play(0);
+                            }
+
+                            // call animation effect
+                            base.move(base.active, $(this).index());
+
+                            // add active class to selected image index and remove any previous active classes from other indices
+                            base.updateIndex("#pagination", $(this).index());
+                            base.updateIndex("#img-container", $(this).index());
+
+                            // set image index position after animation to clicked element occurs
+                            base.active = $("#img-container").children(".active").index();
+
+                            // update caption if enabled
+                            if ( base.options.captions ) {
+                                base.updateCaption();
+                            }
+
+                            // if autoplay is enabled restart autoplay after click animation and image index updates have concluded
+                            if ( base.options.autoplay === "on" ) {
+                                base.play(1);
+                            }
+
                         }
 
-                        // if autoplay is enabled restart autoplay after click animation and image index updates have concluded
-                        if ( base.options.autoplay === "on" ) {
-                            base.play(1);
-                        }
+                    }).wrapAll(html);
 
-                    }
+                    // set initially active index in pagination
+                    $("#pagination").children().eq(0).addClass("active");
 
-                }).wrapAll(html);
-
-                // set initially active index in pagination
-                $("#pagination").children().eq(0).addClass("active");
-
-            }
-
-            // set slider container to height of absolutely positioned image container
-            base.setHeight("#img-container", "#slider");
-
-            // center dynamically generated pagination module horizontally via negative margin
-            $("#pagination").css({
-                "margin-left" : "-" + $("#pagination").children().length + "em"
-            });
-
-            // show pagination module when mouse enters image container, otherwise hide it
-            $("#slider").on({
-                mouseenter: function() {
-                    $("#pagination").slideDown(200);
-                },
-                mouseleave: function() {
-                    $("#pagination").fadeOut(400);
                 }
-            });
 
-            // play slider if autoplay is enabled in user options
-            if ( this.options.autoplay === "on" ) {
-                base.play(1);
-            }
+                // extract image attributes from image information array
+                var paths = [],
+                    widths = [],
+                    heights = [];
+                for ( var i=0; i<base.options.images.length; i++ ) {
+                    paths[i] = base.options.images[i]["path"];
+                    widths[i] = base.options.images[i]["width"];
+                    heights[i] = base.options.images[i]["height"];
+                }
 
-            // resize slider element and image container
-            $(window).resize(function() {
-                base.setHeight("#img-container", "#slider");
-            });
+                // set slider container to height of absolutely positioned image container
+                base.setInitialHeight(heights[0], "#slider", ".sliderstyle");
 
-            return this;
+                // center dynamically generated pagination module horizontally via negative margin
+                $("#pagination").css({
+                    "margin-left" : "-" + $("#pagination").children().length + "em"
+                });
+
+                // show pagination module when mouse enters image container, otherwise hide it
+                $("#slider").on({
+                    mouseenter: function() {
+                        $("#pagination").slideDown(200);
+                    },
+                    mouseleave: function() {
+                        $("#pagination").fadeOut(400);
+                    }
+                });
+
+                // play slider if autoplay is enabled in user options
+                if ( base.options.autoplay === "on" ) {
+                    base.play(1);
+                }
+
+                // resize slider element and image container
+                $(window).resize(function() {
+                    base.setHeight("#img-container", "#slider");
+                });
+
+                return this;
+
+            }, "json");
 
         },
 
         // create an array of image nodes to be inserted into image container
         generateImages: function(imgsrc) {
             var nodeBuffer = [];
+
             for ( var i=0; i<imgsrc.length; i++ ) {
-                nodeBuffer.push($(d.createElement("img")).attr("src", this.options.dir+imgsrc[i]).attr("alt", imgsrc[i]));
+                nodeBuffer.push($(d.createElement("img")).attr("src", imgsrc[i]["path"]).attr("alt", imgsrc[i]["path"]));
             }
             return nodeBuffer;
         },
@@ -160,6 +186,17 @@
             }
         },
 
+        // set initial height of container to image height
+        setInitialHeight: function(el1, el2, el3) {
+            //var e1 = $(el1);
+            var e2 = $(el2);
+            //var e1w = e1.width();
+            //var e1h = e1.height();
+            //var r = e1w / e1h;
+            var p = $(el3).innerWidth() - $(el3).width();
+            e2.height(el1-p/2);
+        },
+
         // set height of second element to that of first
         setHeight: function(el1, el2) {
             var e1 = $(el1);
@@ -167,7 +204,6 @@
             //var e1w = e1.width();
             var e1h = e1.height();
             //var r = e1w / e1h;
-            //var p = e1.innerWidth() - e1w;
             e2.height(e1h);
         },
 
